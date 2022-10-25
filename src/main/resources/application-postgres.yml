@@ -1,0 +1,17 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/knowthenix-ums
+    username: ${KNOWTHENIX_ADMIN}
+    password: ${KNOWTHENIX_ADMIN_PASSWORD}
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      dialect: org.hibernate.dialect.PostgreSQL10Dialect
+  h2:
+    console:
+      enabled: false
