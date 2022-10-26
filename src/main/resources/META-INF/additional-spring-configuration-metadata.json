@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "app.jwt.secret",
+      "type": "java.lang.String",
+      "description": "Secret value used for getting algorithm that signs JWT."
+    }
+  ]
+}

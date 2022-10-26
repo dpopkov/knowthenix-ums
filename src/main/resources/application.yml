@@ -1,1 +1,5 @@
-
+# Application configuration
+app:
+  # Security configuration
+  jwt:
+    secret: lkjsDf079283alkjsd9a0sd6fasljj-jalZXFfa
