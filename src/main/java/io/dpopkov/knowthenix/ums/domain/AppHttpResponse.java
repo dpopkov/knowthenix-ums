@@ -20,10 +20,17 @@ public class AppHttpResponse {
      * @param httpStatus standard httpStatus
      */
     public AppHttpResponse(HttpStatus httpStatus) {
-        this.httpStatus = httpStatus;
-        this.httpStatusCode = httpStatus.value();
-        this.reason = httpStatus.getReasonPhrase();
-        this.message = httpStatus.getReasonPhrase();
+        this(httpStatus, httpStatus.value(), httpStatus.getReasonPhrase(), httpStatus.getReasonPhrase());
+    }
+
+    /**
+     * Constructs the instance using httpStatus and message only.
+     * It initializes other fields with values from httpStatus.
+     * @param httpStatus standard httpStatus
+     * @param message message
+     */
+    public AppHttpResponse(HttpStatus httpStatus, String message) {
+        this(httpStatus, httpStatus.value(), httpStatus.getReasonPhrase(), message);
     }
 
     /**
@@ -34,10 +41,7 @@ public class AppHttpResponse {
      * @param message message
      */
     public AppHttpResponse(HttpStatus httpStatus, String reason, String message) {
-        this.httpStatus = httpStatus;
-        this.httpStatusCode = httpStatus.value();
-        this.reason = reason;
-        this.message = message;
+        this(httpStatus, httpStatus.value(), reason, message);
     }
 
     /**
@@ -50,7 +54,7 @@ public class AppHttpResponse {
     public AppHttpResponse(HttpStatus httpStatus, int httpStatusCode, String reason, String message) {
         this.httpStatus = httpStatus;
         this.httpStatusCode = httpStatusCode;
-        this.reason = reason;
+        this.reason = reason.toUpperCase();
         this.message = message;
     }
 }
