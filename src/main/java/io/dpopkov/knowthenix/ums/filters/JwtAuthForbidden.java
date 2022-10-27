@@ -20,7 +20,7 @@ import static io.dpopkov.knowthenix.ums.filters.HttpResponseUtils.writeToHttpRes
 public class JwtAuthForbidden extends Http403ForbiddenEntryPoint {
 
     @Override
-    public void commence(HttpServletRequest httpRequest, HttpServletResponse httpResponse, AuthenticationException exception)
+    public void commence(HttpServletRequest httpRequest, HttpServletResponse httpResponse, AuthenticationException ex)
             throws IOException {
         AppHttpResponse appResponse = new AppHttpResponse(HttpStatus.FORBIDDEN, FORBIDDEN_MESSAGE);
         writeToHttpResponse(httpResponse, appResponse);
