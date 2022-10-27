@@ -3,3 +3,6 @@ app:
   # Security configuration
   jwt:
     secret: lkjsDf079283alkjsd9a0sd6fasljj-jalZXFfa
+logging:
+  level:
+    io.dpopkov.knowthenix.ums.services: trace

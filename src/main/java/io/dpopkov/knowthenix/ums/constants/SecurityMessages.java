@@ -7,4 +7,5 @@ public class SecurityMessages {
     public static final String TOKEN_CANNOT_BE_VERIFIED = "Token Cannot be verified";
     public static final String FORBIDDEN_MESSAGE = "You do not have permission to access this page";
     public static final String ACCESS_DENIED_MESSAGE = "You need to log in to access this page";
+    public static final String USER_NOT_FOUND_BY_USERNAME = "User not found by username";
 }
