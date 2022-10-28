@@ -8,7 +8,7 @@ import java.util.Date;
 
 @Getter
 public class AppHttpResponse {
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private final Date timestamp = new Date();
     private final HttpStatus httpStatus;
     private final int httpStatusCode;
