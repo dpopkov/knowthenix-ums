@@ -20,20 +20,26 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SecurityConfig extends WebSecurityConfigurerAdapter {  // todo: get rid of deprecated base class
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    private static final String[] ANY_URL = {"**"};
 
     private final JwtAuthFilter jwtAuthFilter;
     private final JwtAuthAccessDenied jwtAuthAccessDenied;
     private final JwtAuthForbidden jwtAuthForbidden;
     private final UserDetailsService userDetailsService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final SecurityProps securityProps;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter, JwtAuthAccessDenied jwtAuthAccessDenied, JwtAuthForbidden jwtAuthForbidden, UserDetailsService userDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter, JwtAuthAccessDenied jwtAuthAccessDenied,
+                          JwtAuthForbidden jwtAuthForbidden, UserDetailsService userDetailsService,
+                          BCryptPasswordEncoder bCryptPasswordEncoder, SecurityProps securityProps) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.jwtAuthAccessDenied = jwtAuthAccessDenied;
         this.jwtAuthForbidden = jwtAuthForbidden;
         this.userDetailsService = userDetailsService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.securityProps = securityProps;
     }
 
     @Override
@@ -52,7 +58,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {  // todo: get
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
                 .authorizeRequests()
-                .antMatchers(SecurityConstants.PUBLIC_URLS).permitAll()
+                .antMatchers(securityProps.isPermitall() ? ANY_URL : SecurityConstants.PUBLIC_URLS).permitAll()
                 .anyRequest().authenticated()
             .and()
                 .exceptionHandling()
