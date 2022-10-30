@@ -8,3 +8,8 @@ app:
 logging:
   level:
     io.dpopkov.knowthenix.ums.services: trace
+
+# Path to the error controller may be customized
+server:
+  error:
+    path: /error
