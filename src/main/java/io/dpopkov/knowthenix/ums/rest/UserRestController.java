@@ -1,20 +1,32 @@
 package io.dpopkov.knowthenix.ums.rest;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import io.dpopkov.knowthenix.ums.domain.AuthUser;
+import io.dpopkov.knowthenix.ums.exceptions.domain.AppDomainException;
+import io.dpopkov.knowthenix.ums.services.AuthUserService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user")
 public class UserRestController {
+
+    private final AuthUserService authUserService;
+
+    public UserRestController(AuthUserService authUserService) {
+        this.authUserService = authUserService;
+    }
 
     @GetMapping("/home")
     public String home() {
         return "This endpoint works.";
     }
 
-    @GetMapping("/login")
-    public String login() {
-        return "This must be login page";
+    @PostMapping("/register")
+    public ResponseEntity<AuthUser> register(@RequestBody AuthUser user) throws AppDomainException {
+        AuthUser registered = authUserService.register(user.getFirstName(), user.getLastName(),
+                user.getUsername(), user.getEmail());
+        // todo: fix this line below - the actual entity should not be sent as response!
+        return new ResponseEntity<>(registered, HttpStatus.CREATED);
     }
 }

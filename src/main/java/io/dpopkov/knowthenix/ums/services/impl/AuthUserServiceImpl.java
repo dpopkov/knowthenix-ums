@@ -24,15 +24,12 @@ import java.util.List;
 import java.util.Optional;
 
 import static io.dpopkov.knowthenix.ums.constants.SecurityMessages.USER_NOT_FOUND_BY_USERNAME;
+import static io.dpopkov.knowthenix.ums.constants.AuthUserServiceImplConstants.*;
 
 @Slf4j
 @Transactional
 @Service
 public class AuthUserServiceImpl implements AuthUserService, UserDetailsService {
-    private static final String NO_USER_FOUND_BY_USERNAME = "No user found by username ";
-    private static final String USERNAME_ALREADY_EXISTS = "Username already exists";
-    private static final String EMAIL_ALREADY_EXISTS = "Email already exists";
-    private static final String NO_USER_FOUND_BY_EMAIL = "No user found by email";
 
     private final AuthUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -61,7 +58,7 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
     @Override
     public AuthUser register(String firstName, String lastName, String username, String email)
             throws UsernameExistsException, EmailExistsException {
-        validateCreatingUsernameAndEmail(username, email);
+        validateRegisteringUsernameAndEmail(username, email);
         AuthUser newUser = AuthUser.builder()
                 .publicId(generatePublicId())
                 .firstName(firstName)
@@ -87,6 +84,7 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
 
     private String generatePassword() {
         String password = RandomStringUtils.randomAlphanumeric(16);
+        // todo: remove logging of generated password when the complete functionality is ready.
         log.trace("Generated password: {}", password);
         return password;
     }
@@ -97,11 +95,11 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
 
     private String getTemporaryProfileImageUrl() {
         return ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/user/image/profile/temp")
+                .path(DEFAULT_USER_IMAGE_PATH + "/temp")
                 .toUriString();
     }
 
-    private void validateCreatingUsernameAndEmail(String newUsername, String newEmail)
+    private void validateRegisteringUsernameAndEmail(String newUsername, String newEmail)
             throws UsernameExistsException, EmailExistsException {
         if (findByUsername(newUsername).isPresent()) {
             throw new UsernameExistsException(USERNAME_ALREADY_EXISTS);
@@ -118,31 +116,37 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
             throw new UserNotFoundException(NO_USER_FOUND_BY_USERNAME + currentUsername);
         }
         AuthUser currentUser = byCurrentUsername.get();
-        // Check that there is no other user with the specified newUsername
+        checkForOtherUserWithThisUsername(currentUser, newUsername);
+        checkForOtherUserWithThisEmail(currentUser, newEmail);
+        return currentUser;
+    }
+
+    private void checkForOtherUserWithThisUsername(AuthUser currentUser, String newUsername) throws UsernameExistsException {
         var byNewUsername = findByUsername(newUsername);
         if (byNewUsername.isPresent() && currentUser.isNotSameById(byNewUsername.get())) {
             throw new UsernameExistsException(USERNAME_ALREADY_EXISTS);
         }
-        // Check that there is no other user with the specified email
-        var byByEmail = findByEmail(newEmail);
-        if (byByEmail.isPresent() && currentUser.isNotSameById(byByEmail.get())) {
+    }
+
+    private void checkForOtherUserWithThisEmail(AuthUser currentUser, String newEmail) throws EmailExistsException {
+        var byByNewEmail = findByEmail(newEmail);
+        if (byByNewEmail.isPresent() && currentUser.isNotSameById(byByNewEmail.get())) {
             throw new EmailExistsException(EMAIL_ALREADY_EXISTS);
         }
-        return currentUser;
     }
 
     @Override
     public List<AuthUser> getAllUsers() {
-        return List.of();
+        return userRepository.findAll();
     }
 
     @Override
     public Optional<AuthUser> findByUsername(String username) {
-        return Optional.empty();
+        return userRepository.findByUsername(username);
     }
 
     @Override
     public Optional<AuthUser> findByEmail(String email) {
-        return Optional.empty();
+        return userRepository.findByEmail(email);
     }
 }
