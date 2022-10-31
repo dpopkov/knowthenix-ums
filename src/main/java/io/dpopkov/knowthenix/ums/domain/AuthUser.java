@@ -33,4 +33,8 @@ public class AuthUser {
     private Collection<String> authorities = new ArrayList<>();
     private boolean active;
     private boolean notLocked;
+
+    public boolean isNotSameById(AuthUser other) {
+        return other == null || id == null || !id.equals(other.getId());
+    }
 }
