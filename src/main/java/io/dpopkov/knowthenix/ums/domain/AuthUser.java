@@ -37,4 +37,8 @@ public class AuthUser {
     public boolean isNotSameById(AuthUser other) {
         return other == null || id == null || !id.equals(other.getId());
     }
+
+    public void lock() {
+        notLocked = false;
+    }
 }

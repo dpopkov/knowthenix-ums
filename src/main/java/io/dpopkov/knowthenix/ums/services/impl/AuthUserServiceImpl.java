@@ -8,6 +8,7 @@ import io.dpopkov.knowthenix.ums.exceptions.domain.UserNotFoundException;
 import io.dpopkov.knowthenix.ums.exceptions.domain.UsernameExistsException;
 import io.dpopkov.knowthenix.ums.repositories.AuthUserRepository;
 import io.dpopkov.knowthenix.ums.services.AuthUserService;
+import io.dpopkov.knowthenix.ums.services.LoginAttemptService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,10 +34,13 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
 
     private final AuthUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final LoginAttemptService loginAttemptService;
 
-    public AuthUserServiceImpl(AuthUserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthUserServiceImpl(AuthUserRepository userRepository, PasswordEncoder passwordEncoder,
+                               LoginAttemptService loginAttemptService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @Override
@@ -47,12 +51,25 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
             throw new UsernameNotFoundException(USER_NOT_FOUND_BY_USERNAME);
         }
         AuthUser user = byUsername.get();
-        user.setLastLoginDateDisplay(user.getLastLoginDate());
-        user.setLastLoginDate(new Date());
+        log.trace("User found by username {}" ,user.getUsername());
+        updateLoginAttemptStatusForRealUsername(user);
+        if (user.isNotLocked()) {
+            user.setLastLoginDateDisplay(user.getLastLoginDate());
+            user.setLastLoginDate(new Date());
+        }
         userRepository.save(user);
-        UserPrincipal principal = new UserPrincipal(user);
-        log.trace("User found by username {}" ,username);
-        return principal;
+        return new UserPrincipal(user);
+    }
+
+    private void updateLoginAttemptStatusForRealUsername(AuthUser user) {
+        if (user.isNotLocked()) {
+            if (loginAttemptService.reachedAttemptsLimit(user.getUsername())) {
+                log.info("Locking user '{}'", user.getUsername());
+                user.lock();
+            }
+        } else {
+            loginAttemptService.evictUser(user.getUsername());
+        }
     }
 
     @Override

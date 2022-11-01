@@ -10,6 +10,6 @@ public interface LoginAttemptService {
     /** Adds user's attempt and increments number of login attempts. */
     void addUserAttempt(String username);
 
-    /** Checks whether the user exceeded the allowed number of attempts to login. */
-    boolean exceededAttemptsLimit(String username);
+    /** Checks whether the user reached the allowed number of attempts to login. */
+    boolean reachedAttemptsLimit(String username);
 }
