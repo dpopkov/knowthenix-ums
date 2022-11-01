@@ -7,8 +7,23 @@
     },
     {
       "name": "app.security.permitall",
-      "type": "java.lang.String",
+      "type": "java.lang.Boolean",
       "description": "Allows access to all URLs of the application."
+    },
+    {
+      "name": "app.security.maximumLoginAttempts",
+      "type": "java.lang.Integer",
+      "description": "Maximum number of login attempts before locking user account."
+    },
+    {
+      "name": "app.security.loginAttemptsExpiration",
+      "type": "java.lang.Integer",
+      "description": "Number of minutes after which login attempts cache expires for an entry."
+    },
+    {
+      "name": "app.security.loginAttemptsCacheLimit",
+      "type": "java.lang.Integer",
+      "description": "The maximum number of entries the login attempts cache may contain."
     }
   ]
 }

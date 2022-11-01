@@ -5,6 +5,8 @@ app:
     secret: lkjsDf079283alkjsd9a0sd6fasljj-jalZXFfa
   security:
     permitall: false
+    maximumLoginAttempts: 3
+    loginAttemptsExpiration: 5
 logging:
   level:
     io.dpopkov.knowthenix.ums.services: trace
