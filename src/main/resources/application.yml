@@ -10,6 +10,7 @@ app:
 logging:
   level:
     io.dpopkov.knowthenix.ums.services: trace
+    io.dpopkov.knowthenix.ums.listeners: trace
 
 # Path to the error controller may be customized
 server:
