@@ -1,5 +1,6 @@
 package io.dpopkov.knowthenix.ums.services.impl;
 
+import io.dpopkov.knowthenix.ums.constants.SecurityMessages;
 import io.dpopkov.knowthenix.ums.domain.AuthUser;
 import io.dpopkov.knowthenix.ums.domain.UserPrincipal;
 import io.dpopkov.knowthenix.ums.enumerations.Role;
@@ -19,13 +20,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static io.dpopkov.knowthenix.ums.constants.SecurityMessages.USER_NOT_FOUND_BY_USERNAME;
 import static io.dpopkov.knowthenix.ums.constants.AuthUserServiceImplConstants.*;
+import static io.dpopkov.knowthenix.ums.constants.SecurityMessages.USER_NOT_FOUND_BY_USERNAME;
 
 @Slf4j
 @Transactional
@@ -76,6 +76,7 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
     public AuthUser register(String firstName, String lastName, String username, String email)
             throws UsernameExistsException, EmailExistsException {
         validateNewUsernameAndEmail(username, email);
+        final Role defaultRole = Role.ROLE_USER;
         AuthUser newUser = AuthUser.builder()
                 .publicId(generatePublicId())
                 .firstName(firstName)
@@ -85,8 +86,8 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
                 .email(email)
                 .profileImageUrl(getTemporaryProfileImageUrl())
                 .joinDate(new Date())
-                .role(Role.ROLE_USER.name())
-                .authorities(Arrays.asList(Role.ROLE_USER.getAuthorities()))
+                .role(defaultRole.name())
+                .authorities(defaultRole.getAuthoritiesAsList())
                 .active(true)
                 .notLocked(true)
                 .build();
@@ -118,17 +119,17 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
 
     private void validateNewUsernameAndEmail(String newUsername, String newEmail)
             throws UsernameExistsException, EmailExistsException {
-        if (findByUsername(newUsername).isPresent()) {
+        if (userRepository.findByUsername(newUsername).isPresent()) {
             throw new UsernameExistsException(USERNAME_ALREADY_EXISTS);
         }
-        if (findByEmail(newEmail).isPresent()) {
+        if (userRepository.findByEmail(newEmail).isPresent()) {
             throw new EmailExistsException(EMAIL_ALREADY_EXISTS);
         }
     }
 
     private AuthUser validateUpdatingUsernameAndEmail(String currentUsername, String newUsername, String newEmail)
             throws UserNotFoundException, UsernameExistsException, EmailExistsException {
-        var byCurrentUsername = findByUsername(currentUsername);
+        var byCurrentUsername = userRepository.findByUsername(currentUsername);
         if (byCurrentUsername.isEmpty()) {
             throw new UserNotFoundException(NO_USER_FOUND_BY_USERNAME + currentUsername);
         }
@@ -154,7 +155,7 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
                 .profileImageUrl(getTemporaryProfileImageUrl())
                 .joinDate(new Date())
                 .role(userRole.name())
-                .authorities(Arrays.asList(userRole.getAuthorities()))
+                .authorities(userRole.getAuthoritiesAsList())
                 .active(isActive)
                 .notLocked(isNotLocked)
                 .build();
@@ -174,7 +175,7 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
         user.setEmail(newEmail);
         Role userRole = getRoleEnum(role);
         user.setRole(userRole.name());
-        user.setAuthorities(Arrays.asList(userRole.getAuthorities()));
+        user.setAuthorities(userRole.getAuthoritiesAsList());
         user.setActive(isActive);
         user.setNotLocked(isNotLocked);
         AuthUser savedUser = userRepository.save(user);
@@ -187,15 +188,15 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
     }
 
     private void checkForOtherUserWithThisUsername(AuthUser currentUser, String newUsername) throws UsernameExistsException {
-        var byNewUsername = findByUsername(newUsername);
+        var byNewUsername = userRepository.findByUsername(newUsername);
         if (byNewUsername.isPresent() && currentUser.isNotSameById(byNewUsername.get())) {
             throw new UsernameExistsException(USERNAME_ALREADY_EXISTS);
         }
     }
 
     private void checkForOtherUserWithThisEmail(AuthUser currentUser, String newEmail) throws EmailExistsException {
-        var byByNewEmail = findByEmail(newEmail);
-        if (byByNewEmail.isPresent() && currentUser.isNotSameById(byByNewEmail.get())) {
+        var byNewEmail = userRepository.findByEmail(newEmail);
+        if (byNewEmail.isPresent() && currentUser.isNotSameById(byNewEmail.get())) {
             throw new EmailExistsException(EMAIL_ALREADY_EXISTS);
         }
     }
@@ -206,13 +207,15 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
     }
 
     @Override
-    public Optional<AuthUser> findByUsername(String username) {
-        return userRepository.findByUsername(username);
+    public AuthUser findByUsername(String username) throws UserNotFoundException {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException(SecurityMessages.USER_NOT_FOUND_BY_USERNAME));
     }
 
     @Override
-    public Optional<AuthUser> findByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public AuthUser findByEmail(String email) throws UserNotFoundException {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(SecurityMessages.USER_NOT_FOUND_BY_EMAIL));
     }
 
     @Override

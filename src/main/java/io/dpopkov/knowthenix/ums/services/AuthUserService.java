@@ -7,7 +7,6 @@ import io.dpopkov.knowthenix.ums.exceptions.domain.UsernameExistsException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface AuthUserService {
 
@@ -17,9 +16,9 @@ public interface AuthUserService {
 
     List<AuthUser> getAllUsers();
 
-    Optional<AuthUser> findByUsername(String username);
+    AuthUser findByUsername(String username) throws UserNotFoundException;
 
-    Optional<AuthUser> findByEmail(String email);
+    AuthUser findByEmail(String email) throws UserNotFoundException;
 
     // todo: for next 2 methods add MultipartFile for profile image
 
