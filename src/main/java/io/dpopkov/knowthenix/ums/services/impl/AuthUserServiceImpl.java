@@ -75,7 +75,7 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
     @Override
     public AuthUser register(String firstName, String lastName, String username, String email)
             throws UsernameExistsException, EmailExistsException {
-        validateRegisteringUsernameAndEmail(username, email);
+        validateNewUsernameAndEmail(username, email);
         AuthUser newUser = AuthUser.builder()
                 .publicId(generatePublicId())
                 .firstName(firstName)
@@ -91,7 +91,7 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
                 .notLocked(true)
                 .build();
         AuthUser savedUser = userRepository.save(newUser);
-        log.trace("Saved user '{}'", savedUser.getUsername());
+        log.trace("Saved registered user '{}'", savedUser.getUsername());
         return savedUser;
     }
 
@@ -116,7 +116,7 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
                 .toUriString();
     }
 
-    private void validateRegisteringUsernameAndEmail(String newUsername, String newEmail)
+    private void validateNewUsernameAndEmail(String newUsername, String newEmail)
             throws UsernameExistsException, EmailExistsException {
         if (findByUsername(newUsername).isPresent()) {
             throw new UsernameExistsException(USERNAME_ALREADY_EXISTS);
@@ -136,6 +136,54 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
         checkForOtherUserWithThisUsername(currentUser, newUsername);
         checkForOtherUserWithThisEmail(currentUser, newEmail);
         return currentUser;
+    }
+
+    @Override
+    public AuthUser addNewUser(String firstName, String lastName, String username, String email, String role,
+                               boolean isNotLocked, boolean isActive)
+            throws EmailExistsException, UsernameExistsException {
+        validateNewUsernameAndEmail(username, email);
+        Role userRole = getRoleEnum(role);
+        AuthUser newUser = AuthUser.builder()
+                .publicId(generatePublicId())
+                .firstName(firstName)
+                .lastName(lastName)
+                .username(username)
+                .password(encodePassword(generatePassword()))
+                .email(email)
+                .profileImageUrl(getTemporaryProfileImageUrl())
+                .joinDate(new Date())
+                .role(userRole.name())
+                .authorities(Arrays.asList(userRole.getAuthorities()))
+                .active(isActive)
+                .notLocked(isNotLocked)
+                .build();
+        AuthUser savedUser = userRepository.save(newUser);
+        log.trace("Saved added user '{}'", savedUser.getUsername());
+        return savedUser;
+    }
+
+    @Override
+    public AuthUser updateUser(String currentUsername, String newFirstName, String newLastName, String newUsername,
+                               String newEmail, String role, boolean isNotLocked, boolean isActive)
+            throws UserNotFoundException, UsernameExistsException, EmailExistsException {
+        AuthUser user = validateUpdatingUsernameAndEmail(currentUsername, newUsername, newEmail);
+        user.setFirstName(newFirstName);
+        user.setLastName(newLastName);
+        user.setUsername(newUsername);
+        user.setEmail(newEmail);
+        Role userRole = getRoleEnum(role);
+        user.setRole(userRole.name());
+        user.setAuthorities(Arrays.asList(userRole.getAuthorities()));
+        user.setActive(isActive);
+        user.setNotLocked(isNotLocked);
+        AuthUser savedUser = userRepository.save(user);
+        log.trace("Saved updated user '{}'", savedUser.getUsername());
+        return savedUser;
+    }
+
+    private Role getRoleEnum(String role) {
+        return Role.valueOf(role.toUpperCase());
     }
 
     private void checkForOtherUserWithThisUsername(AuthUser currentUser, String newUsername) throws UsernameExistsException {
@@ -165,5 +213,11 @@ public class AuthUserServiceImpl implements AuthUserService, UserDetailsService 
     @Override
     public Optional<AuthUser> findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+        log.trace("User deleted by id {}", id);
     }
 }
